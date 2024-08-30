@@ -5,7 +5,7 @@ type MyEvent = {
 /**
  * Take in a payload and something with it
  */
-export async function handleRequest(event: MyEvent) {
+async function handleRequest(event: MyEvent) {
     if (!event.username) {
         return {
             statusCode: 400,
@@ -24,3 +24,5 @@ export async function handleRequest(event: MyEvent) {
         }),
     };
 }
+
+export { registerUserHandler } from './api';
