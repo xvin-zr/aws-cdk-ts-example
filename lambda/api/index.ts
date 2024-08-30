@@ -1,26 +1,79 @@
+import {
+    APIGatewayProxyEventV2,
+    APIGatewayProxyResultV2
+} from 'aws-lambda';
 import ddb from '../database';
+import { newUser, validatePassword } from '../types/new-user';
 
-export async function registerUserHandler(event: RegisterUser) {
-    if (!event.username || !event.password) {
+export async function loginUser(
+    req: APIGatewayProxyEventV2
+): Promise<APIGatewayProxyResultV2> {
+    try {
+        const loginReq = JSON.parse(req.body ?? '{}') as LoginRequest;
+        if (!loginReq.username || !loginReq.password) {
+            return {
+                statusCode: 400,
+                body: 'Invalid request',
+            };
+        }
+
+        const user = await ddb.getUser(loginReq.username);
+
+        const validPass = await validatePassword(
+            loginReq.password,
+            user.passwordHash
+        );
+        if (!validPass) {
+            return {
+                statusCode: 400,
+                body: 'Invalid user credentials',
+            };
+        }
+
         return {
-            statusCode: 400,
-            message: 'request has empty parameters',
+            statusCode: 200,
+            body: 'Successfully logged in',
+        };
+    } catch {
+        return {
+            body: 'Internal server error',
+            statusCode: 500,
         };
     }
+}
 
-    const userExists = await ddb.isUserExist(event.username);
-    if (userExists) {
+export async function registerUserHandler(
+    req: APIGatewayProxyEventV2
+): Promise<APIGatewayProxyResultV2> {
+    try {
+        const registerUser = JSON.parse(req.body ?? '{}') as RegisterUser;
+
+        if (!registerUser.username || !registerUser.password) {
+            return {
+                statusCode: 400,
+                body: 'Invalid request: fields empty',
+            };
+        }
+
+        const userExists = await ddb.isUserExist(registerUser.username);
+        if (userExists) {
+            return {
+                statusCode: 400,
+                body: 'a user with that username already exists',
+            };
+        }
+
+        const user = await newUser(registerUser);
+
+        await ddb.insertUser(user);
         return {
-            statusCode: 400,
-            message: 'a user with that username already exists',
+            statusCode: 200,
+            body: 'Successfully registered user',
+        };
+    } catch {
+        return {
+            body: 'Internal server error',
+            statusCode: 500,
         };
     }
-
-    // we know that user not exist
-
-    await ddb.insertUser(event);
-    return {
-        statusCode: 200,
-        message: 'inserted successfully',
-    };
 }

@@ -1,6 +1,6 @@
 import { compare, hash } from 'bcrypt';
 
-async function newUser(registerUser: RegisterUser): Promise<User> {
+export async function newUser(registerUser: RegisterUser): Promise<User> {
     try {
         const hashedPassword = await hash(registerUser.password, 10);
 
@@ -13,7 +13,7 @@ async function newUser(registerUser: RegisterUser): Promise<User> {
     }
 }
 
-function validatePassword(
+export function validatePassword(
     plainTextPassword: string,
     hashedPassword: string
 ): Promise<boolean> {

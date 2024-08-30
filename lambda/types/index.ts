@@ -4,6 +4,11 @@ type RegisterUser = {
 };
 
 type User = {
-    username: string
-    passwordHash: string
-}
+    username: string;
+    passwordHash: string;
+};
+
+type LoginRequest = {
+    username: string;
+    password: string;
+};
