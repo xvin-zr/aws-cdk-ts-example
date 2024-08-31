@@ -1,8 +1,6 @@
-import {
-    APIGatewayProxyEventV2,
-    APIGatewayProxyResultV2
-} from 'aws-lambda';
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import ddb from '../database';
+import { createToken } from '../types/jwt';
 import { newUser, validatePassword } from '../types/new-user';
 
 export async function loginUser(
@@ -30,9 +28,12 @@ export async function loginUser(
             };
         }
 
+        const accessToken = createToken(user);
+        const successMsg = `{"access_token": "${accessToken}"}`;
+
         return {
             statusCode: 200,
-            body: 'Successfully logged in',
+            body: successMsg,
         };
     } catch {
         return {

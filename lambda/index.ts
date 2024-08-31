@@ -4,10 +4,7 @@ import {
     APIGatewayProxyResultV2,
 } from 'aws-lambda';
 import { loginUser, registerUserHandler } from './api';
-
-type MyEvent = {
-    username: string;
-};
+import { validateJWTMiddleware } from './middleware';
 
 /**
  * Take in a payload and something with it
@@ -42,10 +39,21 @@ export async function handleRequest(
             return await registerUserHandler(req);
         case '/login':
             return await loginUser(req);
+        case '/protected':
+            return validateJWTMiddleware(protectedHandler)(req);
         default:
             return {
                 statusCode: 404,
                 body: 'Not Found',
             };
     }
+}
+
+function protectedHandler(
+    req: APIGatewayProxyEventV2
+): APIGatewayProxyResultV2 {
+    return {
+        statusCode: 200,
+        body: 'This is a secret path',
+    };
 }

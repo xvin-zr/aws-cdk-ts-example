@@ -26,6 +26,10 @@ export class AwsCdkTsStack extends cdk.Stack {
             },
             deployOptions: {
                 loggingLevel: apiga.MethodLoggingLevel.INFO,
+                dataTraceEnabled: true,
+            },
+            endpointConfiguration: {
+                types: [apiga.EndpointType.REGIONAL],
             },
             // cloudWatchRole: true,
         });
@@ -46,5 +50,8 @@ export class AwsCdkTsStack extends cdk.Stack {
 
         const loginResource = api.root.addResource('login');
         loginResource.addMethod('POST', integration);
+
+        const protectedResource = api.root.addResource('protected');
+        protectedResource.addMethod('GET', integration);
     }
 }
